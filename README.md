@@ -1,6 +1,6 @@
 # Seam
 
-**[Run it on Qollab](https://qollab.xyz/u/rayyer/seam)** · **[Source on GitHub](https://github.com/RaYYeR220/seam)** · [Claims ledger](https://github.com/RaYYeR220/seam/blob/main/CLAIMS.md) · [Derivations](https://github.com/RaYYeR220/seam/blob/main/docs/HOW_IT_WORKS.md) · MIT
+**[Run it on Qollab](https://qollab.xyz/u/rayyer/seam)** · **[Demo video, 2:45, captioned](https://youtu.be/olYCRSD9TQw)** · **[Source on GitHub](https://github.com/RaYYeR220/seam)** · [Claims ledger](https://github.com/RaYYeR220/seam/blob/main/CLAIMS.md) · [Derivations](https://github.com/RaYYeR220/seam/blob/main/docs/HOW_IT_WORKS.md) · MIT
 
 Seam splits a quantum circuit across two trapped-ion computers, Trap A and Trap B, joined by a photonic link. Every gate whose qubits sit on opposite sides of the cut is paid for with one shared Bell pair, as a teleported gate. Gates that share a control can ride one pair, and choosing them is solved exactly. The link can be noisy, and two raw pairs can be distilled into one better pair. You test five claims with real Qiskit circuits, and the page shows where the idea loses.
 
@@ -9,8 +9,6 @@ The question: on 9 October 2026, the day this hackathon started, IonQ [announced
 This effort is supported by Qollab & IonQ.
 
 Theme: Quantum Unlocked (quantum networking)
-
-<!-- VIDEO -->
 
 ## Try it in 60 seconds
 
@@ -26,7 +24,9 @@ Theme: Quantum Unlocked (quantum networking)
 | 4. Split an algorithm | Pick an algorithm, move qubits across the seam or Auto cut, Run, then Sweep the link | One machine against the split one, the break-even link error, "Prove it", "Export QASM" |
 | 5. Ledger | Read it | Each claim of your session tagged MEASURED, PROVEN, MODELED or NOT CLAIMED |
 
-<!-- SCREENSHOT -->
+![Step 4 of Seam: phase estimation on four ions split across two traps. Eight gates cross the seam on two pairs; one machine scores 1.00, the split one 0.93 at 5% link error.](docs/step4.png)
+
+*Step 4 after Run on the built-in simulator.*
 
 Filled marks are measured (2,000 shots, 95% intervals); outlined marks are exact theory. The IonQ noise-model simulators (Aria, Forte) are also free but take one job per run: there the first job is measured and later results are exact statevector values, labeled as such. Everything runs in the browser (Pyodide, Qiskit 2.5).
 
