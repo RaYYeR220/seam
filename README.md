@@ -115,6 +115,10 @@ Total = data + 2 link ions per raw pair + 2 environment qubits per raw pair on a
 | `test_negative_controls.py` | 9 | Broken circuits must fail: drop either correction, or merge a burst across `h`, `rx`, `x` or a `cx` onto the control |
 | `test_cli.py` | 3 | The command line |
 
+**On the real runtime (11 October 2026).** On Qollab's built-in simulator the page boots, measures the step-1 truth table and runs every step; phase estimation at 5% link error measured 1.00 on one machine against 0.93 split (95% interval 0.92–0.94), the exact value being 0.926. On the IonQ Forte 1 noise-model simulator the opening job, one 16-qubit circuit with 2,000 shots, took 6 s of circuit time and returned the right output for all four inputs (lowest row: 95% interval 0.997–1.000); the next Run was refused, as IonQ's one-job rule says it must be, and the page switched to exact values and said so.
+
+One thing looks odd there and is not: on an IonQ backend Qollab's **Probabilities** panel lists all 16 qubits, link ions included, so the distribution is spread almost evenly over 256 outcomes. Those extra bits are the two classical bits of each teleported gate. They are uniformly random by construction; if they were not, they would leak the control qubit. The page reads only the data qubits.
+
 Every claim, with its tier and command, is in [CLAIMS.md](https://github.com/RaYYeR220/seam/blob/main/CLAIMS.md).
 
 ## Honest limits
