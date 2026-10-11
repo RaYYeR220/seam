@@ -3,7 +3,7 @@ import { actions, checkbox, runButton, slider, textButton, whileBusy } from './c
 import { clamp, el } from './dom.js';
 import { errorRate, fixed, interval, percent } from './format.js';
 import { ANNOUNCED_CAPTION, ANNOUNCED_LABEL, ANNOUNCED_LINK, errorGrid, isAnnounced } from './link.js';
-import { errorNote, fillNumerals, note, resultParts } from './result.js';
+import { errorNote, fillNumerals, note, resultParts, showNotes } from './result.js';
 import { sceneFromPlan } from './scene.js';
 
 const MAX_ERROR = 0.4;
@@ -25,7 +25,9 @@ const keyOf = (q) => Math.round(q * 1e4);
 
 export function linkStep(view) {
   const { bridge, stage } = view;
-  const state = { q: 0.05, distill: false, theory: null, measured: new Map(), source: 'measured', error: null };
+  const state = {
+    q: 0.05, distill: false, theory: null, measured: new Map(), source: 'measured', shots: null, thresholds: null, error: null,
+  };
   let settled = null;
 
   const step = { enter, run, preset };
@@ -40,8 +42,16 @@ export function linkStep(view) {
     state.q = ANNOUNCED_LINK.error;
     if (state.theory) state.error = null;
     mountControls();
+    cite();
     draw();
   }, 'announced');
+
+  /** The ledger cites the measured point nearest the link error on the slider. */
+  function cite() {
+    const nearest = [...state.measured.values()].reduce(
+      (best, point) => (best && Math.abs(best.q - state.q) < Math.abs(point.q - state.q) - 1e-9 ? best : point), null);
+    if (nearest) view.session.bell = { point: nearest, source: state.source, thresholds: state.thresholds };
+  }
 
   async function loadTheory() {
     const theory = await bridge.exact({ kind: 'remote_bell', qs: errorGrid(MAX_ERROR), distill: 'both' });
@@ -97,6 +107,7 @@ export function linkStep(view) {
         onInput: (v) => {
           state.q = v / 100;
           if (state.theory) state.error = null;
+          cite();
           draw();
         },
       }),
@@ -122,19 +133,20 @@ export function linkStep(view) {
     }
     if (animate && showing()) await stage.play();
     if (result.source !== state.source) state.measured.clear();
-    Object.assign(state, { source: result.source, error: null });
+    Object.assign(state, { source: result.source, shots: result.shots, thresholds: result.thresholds, error: null });
     for (const point of result.points) state.measured.set(keyOf(point.q), point);
-    const last = result.points[result.points.length - 1];
-    view.session.bell = { point: last, source: result.source, thresholds: result.thresholds };
+    cite();
     if (showing()) drawResult({ settle: animate });
-    view.announce(`Remote Bell pair at ${errorRate(last.q)} link error: raw fidelity ${fixed(last.raw.f)}, distilled ${fixed(last.distilled.f)}.`);
+    const { point } = view.session.bell;
+    view.announce(`Remote Bell pair at ${errorRate(point.q)} link error: raw fidelity ${fixed(point.raw.f)}, distilled ${fixed(point.distilled.f)}.`);
   }
 
   function numeralItem(label, mark, key, settle) {
     const measured = state.measured.get(keyOf(state.q));
     if (measured) {
       const sampled = state.source === 'measured';
-      return { label, mark, value: measured[key].f, measured: sampled, settle, detail: sampled ? interval(measured[key]) : 'exact' };
+      return { label, mark, value: measured[key].f, measured: sampled, settle,
+        detail: sampled ? interval(measured[key], { shots: state.shots, value: measured[key].f }) : 'exact' };
     }
     const point = theoryAt(state.q);
     return { label, mark, value: point ? point[key].f : null, measured: false, detail: point ? 'predicted' : '' };
@@ -143,6 +155,7 @@ export function linkStep(view) {
   function chartSpec() {
     const { theory } = state;
     const stops = theory.thresholds.distill_stops_helping_q;
+    const kind = state.source === 'exact' ? 'computed' : 'measured';
     const line = (key) => theory.points.map((point) => [point.q, point[key].f]);
     const points = (key) => [...state.measured.values()].map((point) => ({
       x: point.q, y: point[key].f, lo: point[key].lo, hi: point[key].hi, exact: state.source === 'exact',
@@ -161,11 +174,11 @@ export function linkStep(view) {
       marks: [{ x: ANNOUNCED_LINK.error, text: ANNOUNCED_LABEL }],
       cursor: state.q,
       table: {
-        head: ['Link error', 'Raw, theory', 'Distilled, theory', 'Raw, measured', 'Distilled, measured'],
+        head: ['Link error', 'Raw, theory', 'Distilled, theory', `Raw, ${kind}`, `Distilled, ${kind}`],
         rows: theory.points.filter((point) => keyOf(point.q) % 500 === 0 || isAnnounced(point.q)).map((point) => {
           const hit = state.measured.get(keyOf(point.q));
           return [errorRate(point.q), fixed(point.raw.f, 3), fixed(point.distilled.f, 3),
-            hit ? fixed(hit.raw.f, 3) : 'not measured', hit ? fixed(hit.distilled.f, 3) : 'not measured'];
+            hit ? fixed(hit.raw.f, 3) : 'not run', hit ? fixed(hit.distilled.f, 3) : 'not run'];
         }),
       },
     };
@@ -177,7 +190,7 @@ export function linkStep(view) {
       numeralItem('Raw', 'ring', 'raw', settle),
       numeralItem('Distilled', 'diamond', 'distilled', settle),
     ]);
-    parts.message.replaceChildren(state.error
+    showNotes(parts.message, state.error
       ? errorNote(state.error)
       : note('Link noise is a model: independent X and Z flips on one half of each pair. '
         + 'Distilled results keep only the shots whose check bits agree.'));

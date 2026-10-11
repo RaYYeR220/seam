@@ -32,11 +32,17 @@ function requestedState() {
 }
 
 const root = await whenMounted('seam');
-const bridge = createBridge(service, typeof backend === 'undefined' ? null : backend);
-const app = createApp(root, bridge);
 
-const catalog = await bridge.catalog();
-if (catalog.error) app.fail(catalog.error);
-else await app.start(catalog, requestedState());
+try {
+  const bridge = createBridge(service, typeof backend === 'undefined' ? null : backend);
+  const app = createApp(root, bridge);
+  const catalog = await bridge.catalog();
+  if (catalog.error) throw new Error(catalog.error);
+  await app.start(catalog, requestedState());
+} catch (error) {
+  const text = `Seam stopped: ${error?.message ?? error}`;
+  root.querySelector('#seam-chip').textContent = text;
+  root.querySelector('#seam-live').textContent = text;
+}
 
 await new Promise(() => {});

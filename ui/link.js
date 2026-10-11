@@ -6,7 +6,7 @@
  */
 export const ANNOUNCED_LINK = { fidelity: 0.879, error: 0.0625 };
 
-export const ANNOUNCED_LABEL = `announced link · ${(ANNOUNCED_LINK.fidelity * 100).toFixed(1)}%`;
+export const ANNOUNCED_LABEL = `announced link · ${(ANNOUNCED_LINK.fidelity * 100).toFixed(1)}% fidelity`;
 
 export const ANNOUNCED_CAPTION = 'If a trap-to-trap pair had the fidelity IonQ reported for ion–memory entanglement.';
 

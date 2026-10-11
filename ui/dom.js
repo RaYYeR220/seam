@@ -90,5 +90,5 @@ export function drawOnResize(node, draw) {
     redraw();
   });
   observer.observe(node);
-  return { redraw, disconnect: () => observer.disconnect() };
+  return { redraw };
 }

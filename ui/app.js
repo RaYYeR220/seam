@@ -1,3 +1,4 @@
+import { announceBusyWith } from './controls.js';
 import { el } from './dom.js';
 import { count } from './format.js';
 import { createStage } from './stage.js';
@@ -7,12 +8,13 @@ import { linkStep } from './step-link.js';
 import { splitStep } from './step-split.js';
 import { ledgerStep } from './step-ledger.js';
 
+/** One entry per navigator item in index.html, in the same order. */
 const STEPS = [
-  { title: 'One pair, one gate', make: gateStep },
-  { title: 'One pair, many gates', make: burstStep },
-  { title: 'The weakest link', make: linkStep },
-  { title: 'Split an algorithm', make: splitStep },
-  { title: 'Ledger', make: ledgerStep, isLedger: true },
+  { make: gateStep },
+  { make: burstStep },
+  { make: linkStep },
+  { make: splitStep },
+  { make: ledgerStep, isLedger: true },
 ];
 
 function chipText(mode) {
@@ -62,13 +64,9 @@ export function createApp(root, bridge) {
     return made.get(index);
   }
 
-  const links = STEPS.map((step, index) => el('button', {
-    type: 'button',
-    class: 'step-link',
-    'data-demo': `nav-${index + 1}`,
-    onclick: () => go(index),
-  }, el('span', { class: 'numeral', text: index + 1 }), el('span', { class: 'title', text: step.title })));
-  nodes.steps.replaceChildren(...links.map((link) => el('li', {}, link)));
+  const links = [...nodes.steps.querySelectorAll('.step-link')];
+  const titleOf = (index) => links[index].querySelector('.title').textContent;
+  links.forEach((link, index) => link.addEventListener('click', () => go(index)));
 
   function showNavigation() {
     links.forEach((link, index) => {
@@ -76,22 +74,24 @@ export function createApp(root, bridge) {
       else link.removeAttribute('aria-current');
       link.setAttribute('aria-disabled', String(!ready && index !== current));
     });
-    nodes.back.disabled = !ready || current === 0;
-    nodes.next.disabled = !ready || current === STEPS.length - 1;
+    nodes.back.setAttribute('aria-disabled', String(!ready || current === 0));
+    nodes.next.setAttribute('aria-disabled', String(!ready || current === STEPS.length - 1));
   }
 
   function go(index) {
     if (index < 0 || index >= STEPS.length || index === current) return;
     if (!ready && index !== 0) return;
+    const orphaned = nodes.sheet.contains(document.activeElement);
     current = index;
     showNavigation();
     const isLedger = Boolean(STEPS[index].isLedger);
     nodes.sheet.classList.toggle('is-ledger', isLedger);
     nodes.ledger.hidden = !isLedger;
-    nodes.title.textContent = STEPS[index].title;
+    nodes.title.textContent = titleOf(index);
     nodes['rail-action'].replaceChildren();
     stepAt(index).enter();
-    view.announce(`Step ${index + 1} of ${STEPS.length}: ${STEPS[index].title}.`);
+    if (orphaned) nodes.title.focus();
+    view.announce(`Step ${index + 1} of ${STEPS.length}: ${titleOf(index)}.`);
   }
 
   nodes.back.addEventListener('click', () => go(current - 1));
@@ -104,6 +104,7 @@ export function createApp(root, bridge) {
     links[current].focus();
   });
 
+  announceBusyWith(view.announce);
   const showMode = (mode) => { nodes.chip.textContent = chipText(mode); };
   bridge.onModeChange((mode) => {
     showMode(mode);
@@ -135,9 +136,6 @@ export function createApp(root, bridge) {
       }
       go(step);
       if (run) await target.run?.();
-    },
-    fail(message) {
-      nodes.chip.textContent = `The engine did not start: ${message}`;
     },
   };
 }

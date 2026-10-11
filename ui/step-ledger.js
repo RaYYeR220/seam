@@ -24,6 +24,7 @@ export function ledgerStep(view) {
   const { bridge, catalog, session } = view;
 
   const tierOf = (source) => (source === 'measured' ? 'Measured' : 'Exact');
+  const tierToCome = () => (bridge.mode().sampling ? 'Measured' : 'Exact');
   const provenance = (source) => (source === 'measured'
     ? `${bridge.mode().backend}`
     : 'computed exactly, not sampled');
@@ -46,20 +47,20 @@ export function ledgerStep(view) {
     const budget = algorithm?.result.budget;
     const stops = bell?.thresholds.distill_stops_helping_q;
     return [
-      [truthTable ? tierOf(truthTable.source) : 'Measured',
+      [truthTable ? tierOf(truthTable.source) : tierToCome(),
         'A teleported CNOT reproduces the CNOT truth table with one pair.',
         truthTable ? evidence(`agreement ${fixed(truthTable.agreement, 3)} over four inputs`, truthTable.source) : pending(0)],
-      [burst ? tierOf(burst.source) : 'Measured',
+      [burst ? tierOf(burst.source) : tierToCome(),
         'One pair serves every gate that shares a control.',
         burst
           ? evidence(`GHZ fidelity ≥ ${fixed(shared.fidelity.value)} on ${plural(shared.pairs, 'pair')}, ≥ ${fixed(separate.fidelity.value)} on ${plural(separate.pairs, 'pair')}, at ${percent(burst.q)} error`, burst.source)
           : pending(1)],
-      [bell ? tierOf(bell.source) : 'Measured',
+      [bell ? tierOf(bell.source) : tierToCome(),
         'Link error lands on the gate; distilling helps only below a threshold.',
         bell
           ? evidence(`at ${errorRate(bell.point.q)}: raw ${fixed(bell.point.raw.f)}, distilled ${fixed(bell.point.distilled.f)}${stops == null ? '' : `; stops helping at ${percent(stops)}`}`, bell.source)
           : pending(2)],
-      [algorithm ? tierOf(algorithm.result.source) : 'Measured',
+      [algorithm ? tierOf(algorithm.result.source) : tierToCome(),
         'A split algorithm still returns its answer, at a price set by the link.',
         algorithm
           ? evidence(`${algorithm.name}, ${algorithm.n} qubits: one machine ${fixed(algorithm.result.mono[metric])}, split ${fixed(algorithm.result.dist[metric])} at ${errorRate(algorithm.result.q)} on ${plural(algorithm.result.pairs, 'pair')}`, algorithm.result.source)

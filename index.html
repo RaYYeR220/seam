@@ -4,23 +4,23 @@
       <h1 class="wordmark">Seam</h1>
       <nav class="steps" aria-label="Steps">
         <ol id="seam-steps">
-          <li><button type="button" class="step-link" aria-current="step"><span class="numeral">1</span><span class="title">One pair, one gate</span></button></li>
-          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">2</span><span class="title">One pair, many gates</span></button></li>
-          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">3</span><span class="title">The weakest link</span></button></li>
-          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">4</span><span class="title">Split an algorithm</span></button></li>
-          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">5</span><span class="title">Ledger</span></button></li>
+          <li><button type="button" class="step-link" data-demo="nav-1" aria-label="1. One pair, one gate" aria-current="step"><span class="numeral">1</span><span class="title">One pair, one gate</span></button></li>
+          <li><button type="button" class="step-link" data-demo="nav-2" aria-label="2. One pair, many gates" aria-disabled="true"><span class="numeral">2</span><span class="title">One pair, many gates</span></button></li>
+          <li><button type="button" class="step-link" data-demo="nav-3" aria-label="3. The weakest link" aria-disabled="true"><span class="numeral">3</span><span class="title">The weakest link</span></button></li>
+          <li><button type="button" class="step-link" data-demo="nav-4" aria-label="4. Split an algorithm" aria-disabled="true"><span class="numeral">4</span><span class="title">Split an algorithm</span></button></li>
+          <li><button type="button" class="step-link" data-demo="nav-5" aria-label="5. Ledger" aria-disabled="true"><span class="numeral">5</span><span class="title">Ledger</span></button></li>
         </ol>
       </nav>
       <p class="chip" id="seam-chip">starting the engine</p>
       <div class="pager">
-        <button type="button" class="link-button" id="seam-back" data-demo="back" disabled>Back</button>
-        <button type="button" class="link-button" id="seam-next" data-demo="next" disabled>Next</button>
+        <button type="button" class="link-button" id="seam-back" data-demo="back" aria-disabled="true">Back</button>
+        <button type="button" class="link-button" id="seam-next" data-demo="next" aria-disabled="true">Next</button>
       </div>
     </header>
 
     <main class="sheet" id="seam-sheet">
       <section class="rail" aria-labelledby="seam-title">
-        <h2 id="seam-title">One pair, one gate</h2>
+        <h2 id="seam-title" tabindex="-1">One pair, one gate</h2>
         <div class="prose" id="seam-prose">
           <p><strong>A CNOT between two computers that never touch costs one shared pair and two classical bits.</strong></p>
           <p>Starting the quantum engine.</p>

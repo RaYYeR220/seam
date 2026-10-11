@@ -30,7 +30,7 @@ export function fillNumerals(slot, items) {
     if (item.settle && item.value != null) {
       tween(SETTLE_MS, (t) => { value.textContent = fixed(item.value * (1 - (1 - t) ** 3), digits); });
     }
-    return el('div', {},
+    return el('div', { role: 'group', 'aria-label': item.label },
       el('span', { class: 'numeral-label' }, item.mark ? markIcon(item.mark) : null, item.label),
       value,
       el('span', { class: 'numeral-detail', text: item.detail ?? '' }));
@@ -55,6 +55,11 @@ export function pairGlyph() {
   const icon = markIcon('diamond');
   icon.setAttribute('class', 'pair-glyph');
   return icon;
+}
+
+/** Puts notes into a result's message slot; unchanged text is left alone so an alert is not read twice. */
+export function showNotes(slot, ...notes) {
+  if (slot.textContent !== notes.map((node) => node.textContent).join('')) slot.replaceChildren(...notes);
 }
 
 export function note(...content) {

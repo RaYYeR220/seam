@@ -239,10 +239,21 @@ function drawPairs(scene, drawnOps, g) {
   });
 }
 
+/** One gate in words, for the list that stands in for the drawing. */
+function describeOp(op, scene) {
+  const labels = op.rows.map((row) => scene.wires[row].label);
+  if (op.glyph === 'pair') return `Shared pair delivered to ${labels.join(' and ')}`;
+  const gate = op.name === 'cx'
+    ? `CNOT from ${labels[0]} to ${labels[1]}`
+    : `${op.name.toUpperCase()} on ${labels.join(' and ')}`;
+  return `${gate}${op.cross ? ', crosses the seam' : ''}${op.classical ? ', sent as a classical bit' : ''}`;
+}
+
 export function createStage(host) {
   const figure = svg('svg', { role: 'img', focusable: 'false' });
+  const listing = el('ol', { class: 'sr-only', 'aria-label': 'Gates in order' });
   const buttons = el('div', { class: 'qubit-buttons' });
-  host.append(figure, buttons);
+  host.append(figure, listing, buttons);
 
   let scene = null;
   let options = {};
@@ -271,6 +282,7 @@ export function createStage(host) {
       ...drawWireLabels(g),
       effects,
     );
+    listing.replaceChildren(...scene.ops.filter((op) => op.glyph !== 'measure').map((op) => el('li', { text: describeOp(op, scene) })));
     drawing = { g, ops, pairs, effects };
     applyEmphasis();
     placeButtons(g);

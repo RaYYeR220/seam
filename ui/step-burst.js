@@ -1,12 +1,13 @@
 import { barChart } from './charts.js';
 import { actions, checkbox, runButton, slider, stepper, whileBusy } from './controls.js';
-import { clamp, el } from './dom.js';
+import { clamp, el, wait } from './dom.js';
 import { fixed, interval, inWords, percent, plural } from './format.js';
-import { errorNote, fillNumerals, note, resultParts } from './result.js';
+import { errorNote, fillNumerals, note, resultParts, showNotes } from './result.js';
 import { sceneFromPlan } from './scene.js';
 
 const MAX_TARGETS = 4;
 const MAX_ERROR = 0.3;
+const PAUSE_MS = 150;
 
 /** The fan-out circuit of the engine's `burst` experiment, in the shape of a `plan` result. */
 function fanOut(k, reuse) {
@@ -55,17 +56,22 @@ export function burstStep(view) {
       state.k = k;
       targets.update({ value: k });
       drawStage();
-      settled = refreshTheory();
+      refreshTheory();
     },
   });
 
-  async function refreshTheory() {
+  /** Asks for the prediction after a short pause, so a burst of clicks costs one engine call. */
+  function refreshTheory() {
     const mine = ++request;
     Object.assign(state, { theory: null, error: null });
     if (showing()) {
       drawRail();
       drawResult();
     }
+    settled = wait(PAUSE_MS).then(() => (mine === request ? loadTheory(mine) : undefined));
+  }
+
+  async function loadTheory(mine) {
     const theory = await bridge.exact(spec());
     if (mine !== request) return;
     if (theory.error) state.error = theory.error;
@@ -122,7 +128,7 @@ export function burstStep(view) {
         describe: (v) => `${v} percent`,
         onChange: (v) => {
           state.q = v / 100;
-          settled = refreshTheory();
+          refreshTheory();
         },
       }),
       actions(runControl),
@@ -153,7 +159,7 @@ export function burstStep(view) {
     if (measured) {
       const sampled = state.measured.source === 'measured';
       return { label, mark, value: measured.fidelity.value, measured: sampled, settle,
-        detail: sampled ? interval(measured.fidelity) : 'exact' };
+        detail: sampled ? interval(measured.fidelity, { shots: state.measured.shots, value: measured.fidelity.value }) : 'exact' };
     }
     const theory = variantOf(state.theory, reuse);
     return { label, mark, value: theory ? theory.fidelity.value : null, measured: false, detail: theory ? 'predicted' : '' };
@@ -176,6 +182,7 @@ export function burstStep(view) {
 
   function drawResult({ settle = false } = {}) {
     const rows = [chartRow(true), chartRow(false)];
+    const computed = current(state.measured)?.source === 'exact';
     const caveat = state.theory
       ? note('The fidelity is a lower bound from two settings: all outcomes equal in Z, and the X parity.')
       : note('Computing the prediction.');
@@ -184,16 +191,16 @@ export function burstStep(view) {
       numeralItem('One shared pair', 'diamond', true, settle),
       numeralItem('One pair per gate', 'hollowDiamond', false, settle),
     ]);
-    parts.message.replaceChildren(state.error ? errorNote(state.error) : caveat);
+    showNotes(parts.message, state.error ? errorNote(state.error) : caveat);
     chart.update({
       label: `GHZ fidelity lower bound at ${percent(state.q)} link error, one shared pair against one pair per gate.`,
       rows,
       table: {
-        head: ['Variant', 'Theory', 'Measured'],
+        head: ['Variant', 'Theory', computed ? 'Computed' : 'Measured'],
         rows: rows.map((row) => [
           row.name,
           row.theory == null ? 'pending' : fixed(row.theory, 3),
-          row.value == null ? 'not measured' : fixed(row.value, 3),
+          row.value == null ? 'not run' : fixed(row.value, 3),
         ]),
       },
     });
@@ -209,7 +216,7 @@ export function burstStep(view) {
     drawStage();
     drawRail();
     drawResult();
-    if (!current(state.theory)) settled = refreshTheory();
+    if (!current(state.theory)) refreshTheory();
   }
 
   async function run() {

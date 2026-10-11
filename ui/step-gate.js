@@ -1,5 +1,5 @@
 import { actions, choice, runButton, whileBusy } from './controls.js';
-import { el, wait } from './dom.js';
+import { el, prefersReducedMotion, wait } from './dom.js';
 import { count, fixed, interval } from './format.js';
 import { errorNote, fillNumerals, note, resultParts } from './result.js';
 import { sceneFromDistributed } from './scene.js';
@@ -59,7 +59,7 @@ const WALK_MS = 520;
 export function gateStep(view) {
   const { bridge, stage } = view;
   const scene = sceneFromDistributed(TELEPORTED_CNOT);
-  const state = { move: 0, result: null, error: null };
+  const state = { move: 0, result: null, error: null, spent: false };
 
   const step = { enter, run };
   const showing = () => view.isShowing(step);
@@ -99,6 +99,7 @@ export function gateStep(view) {
   }
 
   async function walk() {
+    if (prefersReducedMotion()) return;
     for (let move = 1; move < MOVES.length; move += 1) {
       if (!showing()) return;
       selectMove(move);
@@ -141,18 +142,23 @@ export function gateStep(view) {
         el('th', { scope: 'col', text: 'Expected' }),
         el('th', { scope: 'col', text: sampled ? 'Measured' : 'Computed' }))),
       el('tbody', {}, result.rows.map((row) => truthRow(row, sampled, result.shots))));
-    parts.message.replaceChildren(state.error
-      ? errorNote(state.error)
-      : note('The two classical bits are drawn as gates (deferred measurement); on hardware they are a measured bit and a conditional flip. '
-        + 'A truth table cannot see a missing phase correction: that is what Prove it in step 4 is for.'));
+    const caveat = state.spent
+      ? 'This backend takes one job per run and it is already spent, so the measured table stands.'
+      : 'The two classical bits are drawn as gates (deferred measurement); on hardware they are a measured bit and a conditional flip. '
+        + 'A truth table cannot see a missing phase correction: that is what Prove it in step 4 is for.';
+    parts.message.replaceChildren(state.error ? errorNote(state.error) : note(caveat));
   }
 
+  /** A measured table is never replaced by a computed one: on a one-job backend the first run is the only sample. */
   async function measure({ animate }) {
     const result = await bridge.measure({ kind: 'truth_table', q: 0 });
-    if (result.error) state.error = result.error;
-    else {
-      Object.assign(state, { result, error: null });
-      view.session.truthTable = result;
+    state.error = result.error ?? null;
+    if (!result.error) {
+      state.spent = result.source === 'exact' && state.result?.source === 'measured';
+      if (!state.spent) {
+        state.result = result;
+        view.session.truthTable = result;
+      }
     }
     if (animate && showing() && !result.error) {
       await stage.play();
@@ -160,8 +166,9 @@ export function gateStep(view) {
     }
     if (!showing()) return;
     drawRail();
-    drawResult({ settle: true });
-    if (!result.error) {
+    drawResult({ settle: !state.spent });
+    if (state.spent) view.announce('This backend’s single job is already spent; the measured truth table stands.');
+    else if (!result.error) {
       view.announce(`Truth table ${result.source === 'measured' ? 'measured' : 'computed'}: `
         + `agreement ${fixed(result.agreement, 3)} over four inputs.`);
     }

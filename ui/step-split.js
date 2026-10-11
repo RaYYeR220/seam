@@ -1,15 +1,16 @@
 import { lineChart } from './charts.js';
 import { actions, checkbox, field, runButton, select, slider, stepper, textButton, whileBusy } from './controls.js';
-import { clamp, el } from './dom.js';
+import { clamp, el, wait } from './dom.js';
 import { capital, count, errorRate, fixed, interval, inWords, percent, plural } from './format.js';
 import { ANNOUNCED_CAPTION, ANNOUNCED_LABEL, ANNOUNCED_LINK, errorGrid, isAnnounced } from './link.js';
-import { errorNote, fillNumerals, note, pairGlyph, resultParts } from './result.js';
+import { errorNote, fillNumerals, note, pairGlyph, resultParts, showNotes } from './result.js';
 import { sceneFromPlan } from './scene.js';
 
 const MAX_ERROR = 0.5;
 const SWEEP_POINTS = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
 const PREFERRED_ALGORITHM = 'qft_phase';
 const PROOF_TRIALS = 16;
+const PAUSE_MS = 150;
 
 const sameError = (a, b) => Math.abs(a - b) < 1e-9;
 const headline = (entry, metric) => (metric === 'success' ? entry.success : entry.hellinger);
@@ -31,7 +32,9 @@ export function splitStep(view) {
     sweep: null,
     message: null,
     error: null,
+    gap: null,
   };
+  const limit = catalog.limits.max_backend_qubits;
   let request = 0;
   let settled = Promise.resolve();
 
@@ -40,7 +43,9 @@ export function splitStep(view) {
   const variant = () => (state.distill ? 'distilled' : 'raw');
   const planOptions = () => ({ algorithm: state.algorithm.id, n: state.n, assignment: state.assignment, reuse: true });
   const cutOptions = () => ({ ...planOptions(), assignment: state.plan.assignment });
-  const clearResults = () => Object.assign(state, { theory: null, measured: null, sweep: null, message: null, error: null });
+  const clearResults = () => Object.assign(state, {
+    theory: null, measured: null, sweep: null, message: null, error: null, gap: null,
+  });
 
   const parts = resultParts();
   const chart = lineChart(parts.chart);
@@ -50,6 +55,7 @@ export function splitStep(view) {
   const exportButton = textButton('Export QASM', () => exportQasm(), 'export');
   const announcedButton = textButton('Set to the announced link', () => {
     state.q = ANNOUNCED_LINK.error;
+    state.error = null;
     mountControls();
     if (state.plan) draw();
   }, 'announced');
@@ -66,37 +72,56 @@ export function splitStep(view) {
     },
   });
 
-  async function refreshPlan() {
+  /** Starts the latest of a burst of requests after a short pause; earlier ones are dropped. */
+  function schedule(task) {
     const mine = ++request;
+    settled = wait(PAUSE_MS).then(() => (mine === request ? task(mine) : undefined));
+  }
+
+  async function loadPlan(mine) {
     const plan = await bridge.plan(planOptions());
     if (mine !== request) return;
     if (plan.error) {
-      state.assignment = state.plan ? state.plan.assignment : null;
+      state.assignment = state.plan && !state.plan.auto ? state.plan.assignment : null;
       state.error = plan.error;
       if (showing()) drawResult();
       return;
     }
+    const replanned = Boolean(state.plan);
     clearResults();
     Object.assign(state, { plan, assignment: plan.auto ? null : plan.assignment });
-    if (showing()) draw();
-    await refreshTheory();
+    if (showing()) {
+      draw();
+      if (replanned) view.announce(sceneFromPlan(plan).summary);
+    }
+    await loadTheory(mine);
   }
 
-  async function refreshTheory() {
-    const mine = ++request;
-    const theory = await bridge.exact({ kind: 'algorithm_sweep', ...cutOptions(), qs: errorGrid(MAX_ERROR), distill: state.distill });
-    if (mine !== request) return;
-    state.theory = theory;
+  /** The curve needs link noise on every pair, which can outgrow the backend when the circuit at 0% still fits. */
+  async function loadTheory(mine) {
+    const totals = state.plan.qubits;
+    const needed = state.distill ? totals.total_noisy_distilled : totals.total_noisy;
+    if (needed > limit) {
+      state.gap = `No prediction curve: with link noise${state.distill ? ' and distillation' : ''} this cut needs `
+        + `${needed} qubits and the backend holds ${limit}. `
+        + (state.distill && totals.total_noisy <= limit ? 'Switch Distill off to see it.' : 'A smaller circuit or a cheaper cut brings it back.');
+    } else {
+      const theory = await bridge.exact({ kind: 'algorithm_sweep', ...cutOptions(), qs: errorGrid(MAX_ERROR), distill: state.distill });
+      if (mine !== request) return;
+      if (theory.error) state.gap = theory.error;
+      else state.theory = theory;
+    }
     if (showing()) drawResult();
   }
 
   function replan(assignment) {
     state.assignment = assignment;
-    settled = refreshPlan();
+    schedule(loadPlan);
   }
 
   function moveQubit(qubit) {
-    const next = [...state.plan.assignment];
+    const next = [...(state.assignment ?? state.plan.assignment)];
+    if (next.filter((side) => side === next[qubit]).length <= 1) return;
     next[qubit] = 1 - next[qubit];
     replan(next);
   }
@@ -134,7 +159,6 @@ export function splitStep(view) {
       el('p', { text: 'Move the cut, set the link error, then run the split against one whole machine.' }));
 
     const needed = qubitsNeeded();
-    const limit = catalog.limits.max_backend_qubits;
     view.setReadouts([
       { label: 'Crossing gates', value: cut.cross_gates },
       { label: 'Pairs', note: `${cut.pairs_without_reuse} without reuse · best cut ${scores.best}`, value: cut.pairs },
@@ -170,6 +194,8 @@ export function splitStep(view) {
         describe: (v) => `${v} percent`,
         onInput: (v) => {
           state.q = v / 100;
+          state.error = null;
+          if (!state.plan) return;
           drawCaption();
           drawRail();
           drawResult();
@@ -180,10 +206,11 @@ export function splitStep(view) {
         demo: 'distill',
         checked: state.distill,
         onChange: (on) => {
-          clearResults();
           state.distill = on;
+          if (!state.plan) return;
+          clearResults();
           draw();
-          settled = refreshTheory();
+          schedule(loadTheory);
         },
       }),
       actions(runControl),
@@ -191,7 +218,9 @@ export function splitStep(view) {
   }
 
   async function measure() {
+    if (!state.plan) return;
     const mine = request;
+    const ran = { name: state.algorithm.name, n: state.plan.n };
     const result = await bridge.measure({ kind: 'algorithm', ...cutOptions(), q: state.q, distill: state.distill });
     if (mine !== request) return;
     if (result.error) {
@@ -202,21 +231,30 @@ export function splitStep(view) {
     if (showing()) await stage.play();
     if (mine !== request) return;
     Object.assign(state, { measured: result, message: null, error: null });
-    view.session.algorithm = { result, name: state.algorithm.name, n: state.plan.n };
+    view.session.algorithm = { result, ...ran };
     if (showing()) drawResult({ settle: true });
-    view.announce(`${state.algorithm.name}, ${metricName(result.metric).toLowerCase()}: `
+    view.announce(`${ran.name}, ${metricName(result.metric).toLowerCase()}: `
       + `one machine ${fixed(headline(result.mono, result.metric))}, `
       + `split in two ${fixed(headline(result.dist, result.metric))} at ${errorRate(result.q)} link error.`);
   }
 
-  /** Runs a secondary action and shows its note, or its error, under the chart. */
+  /**
+   * Runs a secondary action and shows its note, or its error, under the chart.
+   * What it adds to the session ledger is kept only if the cut is still the same.
+   */
   function act(button, workingLabel, task) {
+    if (!state.plan) return Promise.resolve();
     return whileBusy(button, workingLabel, async () => {
       const mine = request;
-      const outcome = await task();
+      const { record, ...outcome } = await task();
       if (mine !== request) return;
       if (outcome.error) state.error = outcome.error;
-      else Object.assign(state, { error: null, ...outcome });
+      else {
+        Object.assign(view.session, record);
+        Object.assign(state, { error: null, ...outcome });
+        view.announce(outcome.message?.textContent
+          ?? `Sweep finished: ${outcome.sweep.points.length} link errors ${outcome.sweep.source === 'exact' ? 'computed' : 'measured'}.`);
+      }
       if (showing()) drawResult();
     });
   }
@@ -230,10 +268,11 @@ export function splitStep(view) {
 
   function prove(button) {
     return act(button, 'Proving', async () => {
+      const proved = { name: state.algorithm.name, n: state.plan.n };
       const proof = await bridge.proof({ ...cutOptions(), trials: PROOF_TRIALS });
       if (proof.error) return proof;
-      view.session.proof = { proof, name: state.algorithm.name, n: state.plan.n };
       return {
+        record: { proof: { proof, ...proved } },
         message: note(
           el('strong', { text: proof.passed ? 'Proven on a perfect link. ' : 'The proof failed. ' }),
           `Lowest fidelity with the original over ${proof.trials} random inputs: ${proof.fidelity_min.toFixed(6)}. `,
@@ -266,15 +305,17 @@ export function splitStep(view) {
     if (measured && sameError(measured.q, state.q)) {
       const sampled = measured.source === 'measured';
       const mono = headline(measured.mono, measured.metric);
+      const split = headline(measured.dist, measured.metric);
       const kept = measured.distill ? `, kept ${percent(measured.dist.kept)} of shots` : '';
+      const allShots = measured.distill ? {} : { shots: measured.shots, value: split };
       return [
         { label: 'One machine', mark: 'ring', value: mono, measured: sampled, settle,
           detail: sampled ? interval(measured.mono, { shots: measured.shots, value: mono }) : 'exact' },
-        { label: 'Split in two', mark: 'diamond', value: headline(measured.dist, measured.metric), measured: sampled, settle,
-          detail: sampled ? `${interval(measured.dist)}${kept}` : `exact${kept}` },
+        { label: 'Split in two', mark: 'diamond', value: split, measured: sampled, settle,
+          detail: sampled ? `${interval(measured.dist, allShots)}${kept}` : `exact${kept}` },
       ];
     }
-    const predicted = theory && !theory.error;
+    const predicted = Boolean(theory);
     return [
       { label: 'One machine', mark: 'ring', value: predicted ? theory.mono : null, measured: false,
         detail: predicted ? 'predicted' : '' },
@@ -310,6 +351,7 @@ export function splitStep(view) {
     const within = (q) => q <= xMax + 1e-9;
     const points = measuredPoints(key).filter((point) => within(point.x));
     const labelAt = Math.round(xMax * 30) / 100;
+    const computed = points.some((point) => point.exact);
     return {
       label: `${metricName(theory.metric)} of the split circuit against link error, from 0 to ${percent(xMax)}. `
         + (!succeeds ? '' : breakEven == null ? 'It stays above one half over the whole range.' : `It falls below one half at ${percent(breakEven)}.`),
@@ -339,18 +381,21 @@ export function splitStep(view) {
       marks: [{ x: ANNOUNCED_LINK.error, text: ANNOUNCED_LABEL }],
       cursor: state.q,
       table: {
-        head: ['Link error', 'Theory', 'Measured'],
+        head: ['Link error', 'Theory', computed ? 'Computed' : 'Measured'],
         rows: theory.points.filter((p) => within(p.q) && (Math.round(p.q * 1e4) % 500 === 0 || isAnnounced(p.q))).map((p) => {
           const hit = points.find((point) => sameError(point.x, p.q));
-          return [errorRate(p.q), fixed(p[key].value, 3), hit ? fixed(hit.y, 3) : 'not measured'];
+          return [errorRate(p.q), fixed(p[key].value, 3), hit ? fixed(hit.y, 3) : 'not run'];
         }),
       },
     };
   }
 
+  /** The link budget of the last run, shown while the slider still sits where it was measured. */
   function budgetNote() {
-    const budget = state.measured?.budget;
-    if (!budget || budget.shots_per_second == null) return null;
+    const { measured } = state;
+    if (!measured || !sameError(measured.q, state.q)) return null;
+    const { budget } = measured;
+    if (budget.shots_per_second == null) return null;
     const pairs = budget.raw_pairs_per_shot === budget.pairs_per_shot
       ? plural(budget.pairs_per_shot, 'pair')
       : `${budget.raw_pairs_per_shot} raw pairs`;
@@ -360,16 +405,18 @@ export function splitStep(view) {
 
   function drawResult({ settle = false } = {}) {
     const { theory } = state;
-    const failure = state.error ?? theory?.error;
-    const charted = Boolean(theory) && !theory.error;
-    const message = failure
-      ? errorNote(failure)
-      : state.message ?? (theory ? budgetNote() : note('Computing the prediction.'));
+    const pending = !theory && !state.gap;
+    const notes = state.error
+      ? [errorNote(state.error)]
+      : [
+        state.gap ? errorNote(state.gap) : null,
+        state.message ?? budgetNote() ?? (pending ? note('Computing the prediction.') : null),
+      ].filter(Boolean);
     parts.heading.textContent = metricName((state.measured ?? theory)?.metric);
     fillNumerals(parts.numerals, numeralItems(settle));
-    parts.chart.hidden = Boolean(theory) && !charted;
-    parts.message.replaceChildren(...(message ? [message] : []));
-    if (charted) chart.update(chartSpec());
+    parts.chart.hidden = Boolean(state.gap);
+    showNotes(parts.message, ...notes);
+    if (theory) chart.update(chartSpec());
     else chart.clear();
   }
 

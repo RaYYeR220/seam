@@ -1,6 +1,10 @@
 import { drawOnResize, el, svg } from './dom.js';
 import { EDGE, INK_1, INK_2, INK_3, LINK, PLATE } from './palette.js';
 
+/** Below this size there is no room for axes; the hidden table still carries the data. */
+const MIN_WIDTH = 120;
+const MIN_HEIGHT = 70;
+
 function dataTable(caption, head, rows) {
   return el('table', {},
     el('caption', { text: caption }),
@@ -36,14 +40,17 @@ function interpolate(points, x) {
 }
 
 function mount(host, describe, draw) {
-  const figure = svg('svg', { role: 'img', focusable: 'false' });
+  const figure = svg('svg', { 'aria-hidden': 'true', focusable: 'false' });
   const tableSlot = el('div', { class: 'sr-only' });
   host.replaceChildren(figure, tableSlot);
   let spec = null;
   const sizer = drawOnResize(host, (width, height) => {
     if (!spec) return;
+    if (width < MIN_WIDTH || height < MIN_HEIGHT) {
+      figure.replaceChildren();
+      return;
+    }
     figure.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    figure.setAttribute('aria-label', spec.label);
     figure.replaceChildren(chartDefinitions(), ...draw(spec, width, height));
   });
   return {
@@ -55,7 +62,6 @@ function mount(host, describe, draw) {
     clear() {
       spec = null;
       figure.replaceChildren();
-      figure.removeAttribute('aria-label');
       tableSlot.replaceChildren();
     },
   };

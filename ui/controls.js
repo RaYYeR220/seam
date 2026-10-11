@@ -16,7 +16,7 @@ export function field(label, body, readout = null) {
  */
 export function slider({ label, min, max, step, value, format, describe = format, onInput, onChange, demo, mark }) {
   const id = uniqueId('range');
-  const readout = el('output', { for: id, text: format(value) });
+  const readout = el('output', { for: id, 'aria-live': 'off', text: format(value) });
   const input = el('input', {
     id,
     type: 'range',
@@ -94,7 +94,13 @@ export function stepper({ label, unit, onChange, demo = {}, ...initial }) {
 export function choice({ label, options, value, onChange }) {
   const name = uniqueId('choice');
   const inputs = options.map((option) => {
-    const input = el('input', { type: 'radio', name, value: option.value, onchange: () => onChange(option.value) });
+    const input = el('input', {
+      type: 'radio',
+      name,
+      value: option.value,
+      'aria-label': option.numeral ? `${option.numeral}. ${option.label}` : null,
+      onchange: () => onChange(option.value),
+    });
     input.checked = option.value === value;
     return input;
   });
@@ -125,12 +131,20 @@ export function runButton(onClick, label = 'Run') {
   return el('button', { type: 'button', class: 'run', 'data-demo': 'run', onclick: onClick, text: label });
 }
 
+let announceBusy = () => {};
+
+/** Sets where `whileBusy` says that work has started, for people who cannot see the button change. */
+export function announceBusyWith(announce) {
+  announceBusy = announce;
+}
+
 /** Shows a working label on the button while the task runs and ignores repeat presses. */
 export async function whileBusy(button, workingLabel, task) {
   if (button.getAttribute('aria-busy') === 'true') return undefined;
   const label = button.textContent;
   button.setAttribute('aria-busy', 'true');
   button.textContent = workingLabel;
+  announceBusy(`${workingLabel}…`);
   try {
     return await task();
   } finally {
