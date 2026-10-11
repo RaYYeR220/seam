@@ -83,6 +83,7 @@ Figures were produced on 11 October 2026 with Python 3.13, Qiskit 2.5.2 and NumP
 | N4 | The fidelity shown in step 2 is a lower bound, max(0, P(all equal) − (1 − ⟨X…X⟩)/2), not the fidelity. For one shared pair at q = 0.05 it reads 0.900; the state fidelity is 0.9025. | EXACT | `svc exact '{"kind":"burst","k":3,"q":0.05}'`, field `fidelity_kind` |
 | N5 | The break-even bar is max(classical guess, 1/2), not the classical guess. Against the bare classical guess no catalog circuit loses for any q ≤ 0.5: at q = 0.5 Grover still succeeds 0.219 against 0.125. That reflects a mild noise model (link only), not a strong machine. | EXACT | Snippet C4, columns `worst split` and `guess` |
 | N6 | The burst idea is not ours (X7), and target-side sharing, which would save more pairs, is not implemented: two CNOTs onto one target cost two pairs. | REPRODUCIBLE | `python -m pytest -q tests/test_schedule.py -k shared_target` (1 passed) |
+| N7 | "Best balanced cut" is not the cheapest cut. Auto cut searches balanced cuts only (B5). For phase estimation on four qubits the best balanced cut costs 2 pairs; an uneven one, `q3` alone in Trap B, costs 1. The page allows that cut and then shows "Pairs 1 · best balanced cut 2". Until v1.1 the label read "best cut", which was wrong. | REPRODUCIBLE | `svc plan '{"algorithm":"qft_phase","assignment":[0,0,0,1]}'` against `svc plan '{"algorithm":"qft_phase"}'` |
 
 ## Modeled
 

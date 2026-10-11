@@ -161,7 +161,7 @@ export function splitStep(view) {
     const needed = qubitsNeeded();
     view.setReadouts([
       { label: 'Crossing gates', value: cut.cross_gates },
-      { label: 'Pairs', note: `${cut.pairs_without_reuse} without reuse · best cut ${scores.best}`, value: cut.pairs },
+      { label: 'Pairs', note: `${cut.pairs_without_reuse} without reuse · best balanced cut ${scores.best}`, value: cut.pairs },
       { label: 'Qubits used', note: needed > limit ? `the backend holds ${limit}` : null, value: needed, over: needed > limit },
     ]);
   }

@@ -79,7 +79,7 @@ After line 3, `b` is a Z-basis copy of `c`: $\alpha|0\rangle_c|0\rangle_b + \bet
 
 **Bursts.** Between lines 3 and 5 any number of gates can be driven from `b`, provided nothing acts on `c` that is not diagonal in Z. Phase gates, `cz`, and `cx` with `c` as control keep the copy faithful; `h`, `x`, `rx`, `ry` or a `cx` onto `c` change `c` but not its copy, and end the burst.
 
-**Scheduling.** Cut each qubit's timeline at its non-diagonal gates. A crossing `cx` must be driven from its control's segment; a crossing `cz` can be driven from either end, so it is an edge between a segment in A and one in B. The fewest pairs is a minimum vertex cover of that bipartite graph, solved exactly through König's theorem. The cut itself is found by exhaustive search, minimizing pairs, not crossing gates.
+**Scheduling.** Cut each qubit's timeline at its non-diagonal gates. A crossing `cx` must be driven from its control's segment; a crossing `cz` can be driven from either end, so it is an edge between a segment in A and one in B. The fewest pairs is a minimum vertex cover of that bipartite graph, solved exactly through König's theorem. Auto cut is found by exhaustive search over balanced cuts (each trap holds at most half the qubits, rounded up), minimizing pairs, not crossing gates. Balanced is a choice, not an optimum: for phase estimation the best balanced cut needs 2 pairs, while putting `q3` alone in Trap B needs 1. The page lets you make that cut and shows both numbers.
 
 **Link noise.** After a pair is made, `b` suffers an X flip with probability q and, independently, a Z flip with probability q, each driven by its own environment qubit: two per raw pair, never measured. The pair is Bell-diagonal with fidelity $(1-q)^2$.
 
@@ -115,7 +115,7 @@ Total = data + 2 link ions per raw pair + 2 environment qubits per raw pair on a
 | `test_negative_controls.py` | 9 | Broken circuits must fail: drop either correction, or merge a burst across `h`, `rx`, `x` or a `cx` onto the control |
 | `test_cli.py` | 3 | The command line |
 
-**On the real runtime (11 October 2026).** On Qollab's built-in simulator the page boots, measures the step-1 truth table and runs every step; phase estimation at 5% link error measured 1.00 on one machine against 0.93 split (95% interval 0.92–0.94), the exact value being 0.926. On the IonQ Forte 1 noise-model simulator the opening job, one 16-qubit circuit with 2,000 shots, took 6 s of circuit time and returned the right output for all four inputs (lowest row: 95% interval 0.997–1.000); the next Run was refused, as IonQ's one-job rule says it must be, and the page switched to exact values and said so.
+**On the real runtime (11 October 2026).** On Qollab's built-in simulator the page boots, measures the step-1 truth table and runs every step; phase estimation at 5% link error measured 1.00 on one machine against 0.93 split (95% interval 0.92–0.94). The exact value is 0.926: a run of 2,000 shots prints 0.93 about half the time and 0.92 about four times in ten. On the IonQ Forte 1 noise-model simulator the opening job, one 16-qubit circuit with 2,000 shots, took 6 s of circuit time and returned the right output for all four inputs (lowest row: 95% interval 0.997–1.000); the next Run was refused, as IonQ's one-job rule says it must be, and the page switched to exact values and said so.
 
 One thing looks odd there and is not: on an IonQ backend Qollab's **Probabilities** panel lists all 16 qubits, link ions included, so the distribution is spread almost evenly over 256 outcomes. Those extra bits are the two classical bits of each teleported gate. They are uniformly random by construction; if they were not, they would leak the control qubit. The page reads only the data qubits.
 
@@ -157,7 +157,7 @@ seam/
   service.py       JSON front door, all the page imports
   algorithms.py    five catalog circuits and their answers
   lower.py         lowering to one-qubit gates, cx, cz
-  partition.py     exhaustive search for the cheapest cut
+  partition.py     exhaustive search for the cheapest balanced cut
   schedule.py      crossing gates to bursts (vertex cover)
   link.py          Bell pairs, link noise, distillation
   build.py         the distributed circuit, drawing data
