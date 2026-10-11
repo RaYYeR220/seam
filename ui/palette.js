@@ -1,0 +1,11 @@
+export const PLATE = '#0C0A09';
+export const SEAM_DARK = '#050403';
+export const INK_1 = '#F2EADB';
+export const INK_2 = '#CFC5B4';
+export const INK_3 = '#A0958A';
+export const EDGE = '#6E6257';
+export const HAIR = '#3B332B';
+export const TRAP_A = '#5ED6E6';
+export const TRAP_B = '#F29BC4';
+export const LINK = '#FFC24A';
+export const CORE = '#FFF8EC';

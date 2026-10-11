@@ -1,0 +1,1207 @@
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans+SC:wght@500&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap');
+
+html,
+body {
+  margin: 0;
+  background: #0c0a09;
+}
+
+.seam {
+  --plate: #0c0a09;
+  --seam-dark: #050403;
+  --ink-1: #f2eadb;
+  --ink-2: #cfc5b4;
+  --ink-3: #a0958a;
+  --trap-a: #5ed6e6;
+  --trap-b: #f29bc4;
+  --link: #ffc24a;
+  --edge: #6e6257;
+  --hair: #3b332b;
+  --serif: 'Old Standard TT', 'Times New Roman', serif;
+  --sans: 'Alegreya Sans', 'Gill Sans', 'Trebuchet MS', sans-serif;
+  --caps: 'Alegreya Sans SC', 'Alegreya Sans', 'Gill Sans', sans-serif;
+  --gutter: clamp(16px, 2.3cqw, 36px);
+
+  position: fixed;
+  inset: 0;
+  container: seam / size;
+  overflow: hidden;
+  background: var(--plate);
+  color: var(--ink-1);
+  font: 400 17px/1.4 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.seam *,
+.seam *::before,
+.seam *::after {
+  box-sizing: border-box;
+}
+
+.seam h1,
+.seam h2,
+.seam h3,
+.seam p,
+.seam ol,
+.seam dl,
+.seam dd,
+.seam figure {
+  margin: 0;
+  padding: 0;
+}
+
+.seam button,
+.seam select,
+.seam input {
+  font: inherit;
+  color: inherit;
+}
+
+.seam :focus-visible {
+  outline: 2px solid var(--ink-1);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+.seam [hidden] {
+  display: none !important;
+}
+
+.seam .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.seam .frame {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  row-gap: clamp(10px, 2.4cqh, 18px);
+  height: 100%;
+  padding: clamp(10px, 2.2cqh, 16px) var(--gutter) clamp(12px, 2.8cqh, 20px);
+}
+
+/* Top bar */
+
+.seam .bar {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 2.2cqw, 34px);
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--hair);
+  white-space: nowrap;
+}
+
+.seam .wordmark {
+  font: 700 28px/1 var(--serif);
+  letter-spacing: 0.01em;
+}
+
+.seam .steps ol {
+  display: flex;
+  gap: clamp(12px, 1.7cqw, 26px);
+  list-style: none;
+}
+
+.seam .step-link {
+  padding: 2px 0 4px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--ink-3);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.seam .step-link .numeral {
+  margin-right: 6px;
+  font: italic 400 17px/1 var(--serif);
+}
+
+.seam .step-link:hover:not([aria-disabled='true']) {
+  color: var(--ink-1);
+}
+
+.seam .step-link[aria-disabled='true'] {
+  cursor: default;
+}
+
+.seam .step-link[aria-current='step'] {
+  border-bottom-color: var(--ink-1);
+  color: var(--ink-1);
+  font-weight: 500;
+}
+
+.seam .chip {
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 15px;
+  text-overflow: ellipsis;
+}
+
+.seam .pager {
+  display: flex;
+  gap: 22px;
+}
+
+.seam .link-button {
+  padding: 2px 0 3px;
+  border: 0;
+  border-bottom: 1px solid var(--edge);
+  background: none;
+  color: var(--ink-1);
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.seam .link-button:hover:not(:disabled) {
+  border-bottom-color: var(--ink-1);
+}
+
+.seam .link-button:disabled {
+  border-bottom-color: transparent;
+  color: var(--ink-3);
+  cursor: default;
+}
+
+.seam .link-button[aria-busy='true'] {
+  border-bottom-style: dashed;
+  color: var(--ink-2);
+}
+
+/* Sheet: rail, plate, result */
+
+.seam .sheet {
+  display: grid;
+  grid-template-columns: clamp(216px, 18cqw, 290px) minmax(0, 1fr) clamp(256px, 21.5cqw, 340px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'rail figure result'
+    'rail controls result';
+  column-gap: clamp(22px, 2.7cqw, 44px);
+  row-gap: 12px;
+  min-height: 0;
+}
+
+.seam .rail {
+  display: flex;
+  flex-direction: column;
+  grid-area: rail;
+  min-height: 0;
+}
+
+.seam .rail h2 {
+  font: 400 clamp(28px, 2.5cqw, 38px) / 1.06 var(--serif);
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.seam .prose {
+  margin-top: 16px;
+  max-width: 36ch;
+  color: var(--ink-2);
+  font-size: 17px;
+  line-height: 1.42;
+}
+
+.seam .prose p + p {
+  margin-top: 10px;
+}
+
+.seam .prose strong {
+  color: var(--ink-1);
+  font-weight: 500;
+}
+
+.seam .prose .pair-word {
+  color: var(--link);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.seam .pair-glyph {
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+
+.seam .rail-action {
+  margin-top: 14px;
+}
+
+.seam .rail-action:empty {
+  display: none;
+}
+
+.seam .rail-action .link-button {
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.seam .readouts {
+  margin-top: auto;
+  border-top: 1px solid var(--hair);
+}
+
+.seam .readouts:empty {
+  display: none;
+}
+
+.seam .readouts > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: 12px;
+  padding: 7px 0 6px;
+  border-bottom: 1px solid var(--hair);
+}
+
+.seam .readouts dt {
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.seam .readouts dt small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+.seam .readouts dd {
+  font: 400 30px/1 var(--serif);
+}
+
+.seam .readouts dd.over {
+  color: var(--link);
+}
+
+.seam .figure {
+  display: flex;
+  flex-direction: column;
+  grid-area: figure;
+  min-width: 0;
+  min-height: 0;
+}
+
+.seam .plate {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--edge);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.seam .plate svg {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.seam .caption {
+  padding-top: 9px;
+  min-height: 29px;
+  color: var(--ink-2);
+  font: italic 400 16px/1.25 var(--serif);
+  text-align: center;
+}
+
+/* Text inside the plate */
+
+.seam .stage-trap {
+  fill: var(--ink-1);
+  font: italic 400 18px var(--serif);
+}
+
+.seam .stage-wire-label {
+  fill: var(--ink-2);
+  font: italic 400 15px var(--sans);
+}
+
+.seam .stage-gate-letter {
+  fill: var(--ink-1);
+  font: italic 400 14px var(--serif);
+  text-anchor: middle;
+}
+
+.seam .stage-gate-mark {
+  font-size: 10px;
+}
+
+.seam .stage-note {
+  fill: var(--ink-3);
+  font: italic 400 14px var(--sans);
+  word-spacing: 2px;
+  paint-order: stroke;
+  stroke: var(--seam-dark);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.seam .stage-pair-label {
+  fill: var(--link);
+}
+
+.seam .stage-dim {
+  opacity: 0.26;
+}
+
+.seam .stage-op {
+  transition: opacity 0.35s ease;
+}
+
+.seam .qubit-buttons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.seam .qubit-button {
+  position: absolute;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 3px;
+  min-width: 44px;
+  padding: 1px 4px 2px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--ink-1);
+  font: italic 400 15px/1.2 var(--sans);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-100%, -50%);
+}
+
+.seam .qubit-button .arrow {
+  color: var(--ink-3);
+  font-style: normal;
+  font-size: 14px;
+}
+
+.seam .qubit-button:hover:not(:disabled) {
+  border-bottom-color: var(--ink-1);
+}
+
+.seam .qubit-button:hover:not(:disabled) .arrow {
+  color: var(--ink-1);
+}
+
+.seam .qubit-button:disabled {
+  color: var(--ink-2);
+  cursor: default;
+}
+
+.seam .qubit-button:disabled .arrow {
+  visibility: hidden;
+}
+
+/* Controls */
+
+.seam .controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  grid-area: controls;
+  gap: 10px clamp(12px, 1.1cqw, 24px);
+  min-height: 52px;
+}
+
+.seam .control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.seam .control-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  color: var(--ink-3);
+  font: 500 14px/1 var(--caps);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.seam .control-label output {
+  color: var(--ink-1);
+  font: 700 17px/1 var(--serif);
+  letter-spacing: 0;
+}
+
+.seam .control-body {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+}
+
+.seam .range {
+  position: relative;
+  display: inline-flex;
+}
+
+.seam .range-mark {
+  position: absolute;
+  top: 3px;
+  left: calc(6.5px + (100% - 13px) * var(--at));
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--link);
+  background: var(--plate);
+  transform: translateX(-50%) rotate(45deg);
+  pointer-events: none;
+}
+
+.seam input[type='range'] {
+  width: clamp(112px, 8.6cqw, 180px);
+  height: 26px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.seam input[type='range']::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--ink-2);
+}
+
+.seam input[type='range']::-moz-range-track {
+  height: 1px;
+  background: var(--ink-2);
+}
+
+.seam input[type='range']::-webkit-slider-thumb {
+  width: 13px;
+  height: 13px;
+  margin-top: -6px;
+  border: 1px solid var(--ink-1);
+  border-radius: 50%;
+  background: var(--ink-1);
+  box-shadow: 0 0 0 3px var(--plate);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.seam input[type='range']::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--ink-1);
+  border-radius: 50%;
+  background: var(--ink-1);
+  box-shadow: 0 0 0 3px var(--plate);
+}
+
+.seam .check {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.seam .check input {
+  display: grid;
+  place-content: center;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  border: 1px solid var(--ink-2);
+  border-radius: 1px;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.seam .check input::before {
+  width: 9px;
+  height: 9px;
+  background: var(--ink-1);
+  content: '';
+  transform: scale(0);
+}
+
+.seam .check input:checked::before {
+  transform: scale(1);
+}
+
+.seam .choice {
+  flex-wrap: wrap;
+  gap: 4px clamp(12px, 1.4cqw, 24px);
+}
+
+.seam .choice label {
+  position: relative;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  color: var(--ink-3);
+  font-size: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.seam .choice input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.seam .choice .numeral {
+  margin-right: 5px;
+  font: italic 400 17px/1 var(--serif);
+}
+
+.seam .choice label:hover {
+  color: var(--ink-1);
+}
+
+.seam .choice label:has(input:checked) {
+  border-bottom-color: var(--ink-1);
+  color: var(--ink-1);
+}
+
+.seam .choice label:has(input:focus-visible) {
+  outline: 2px solid var(--ink-1);
+  outline-offset: 3px;
+}
+
+.seam select {
+  width: clamp(164px, 11.6cqw, 230px);
+  text-overflow: ellipsis;
+  padding: 1px 22px 4px 0;
+  border: 0;
+  border-bottom: 1px solid var(--edge);
+  border-radius: 0;
+  background: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23F2EADB' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
+  font: italic 400 18px/1.2 var(--serif);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.seam select option {
+  background: #191512;
+  color: var(--ink-1);
+  font-family: var(--sans);
+  font-style: normal;
+}
+
+.seam .stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.seam .stepper button {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--edge);
+  border-radius: 1px;
+  background: none;
+  font: 400 18px/1 var(--serif);
+  cursor: pointer;
+}
+
+.seam .stepper button:hover:not([aria-disabled='true']) {
+  border-color: var(--ink-1);
+}
+
+.seam .stepper button[aria-disabled='true'] {
+  color: var(--edge);
+  cursor: default;
+}
+
+.seam .stepper output {
+  min-width: 30px;
+  font: 700 19px/1 var(--serif);
+  text-align: center;
+}
+
+.seam .actions {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(14px, 1.6cqw, 22px);
+  margin-left: auto;
+}
+
+.seam .run {
+  width: 92px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: var(--ink-1);
+  color: var(--plate);
+  font: 700 19px/1 var(--serif);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.seam .run:hover:not([aria-busy='true']) {
+  background: #fff8ec;
+}
+
+.seam .run:focus-visible {
+  outline-offset: 3px;
+}
+
+.seam .run[aria-busy='true'] {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--ink-1);
+  color: var(--ink-1);
+  font-weight: 400;
+  font-style: italic;
+  cursor: progress;
+}
+
+/* Result */
+
+.seam .result {
+  display: flex;
+  flex-direction: column;
+  grid-area: result;
+  min-width: 0;
+  min-height: 0;
+}
+
+.seam .result-heading {
+  margin-bottom: 8px;
+  color: var(--ink-3);
+  font: 500 14px/1.2 var(--caps);
+  letter-spacing: 0.06em;
+}
+
+.seam .numerals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 18px;
+}
+
+.seam .numeral-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.seam .numeral-value {
+  display: block;
+  margin-top: 2px;
+  font: 400 clamp(36px, 3.3cqw, 50px) / 1 var(--serif);
+  font-variant-numeric: lining-nums;
+}
+
+.seam .numeral-value.is-theory {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--ink-1);
+}
+
+.seam .numeral-detail {
+  display: block;
+  min-height: 20px;
+  margin-top: 3px;
+  color: var(--ink-3);
+  font-size: 14.5px;
+  line-height: 1.3;
+}
+
+.seam .chart {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 10px;
+}
+
+.seam .chart svg {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.seam .chart-tick {
+  fill: var(--ink-3);
+  font: 400 14px var(--sans);
+}
+
+.seam .chart-label {
+  fill: var(--ink-2);
+  font: italic 400 14.5px var(--sans);
+  paint-order: stroke;
+  stroke: var(--plate);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.seam .chart-value {
+  fill: var(--ink-1);
+  font: 700 16px var(--serif);
+  paint-order: stroke;
+  stroke: var(--plate);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.seam .result-note {
+  margin-top: 8px;
+  color: var(--ink-3);
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+
+.seam .result-note strong {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.seam .result-error {
+  margin-top: 10px;
+  padding-left: 12px;
+  border-left: 1px solid var(--link);
+  color: var(--ink-1);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.seam .chart.is-bars {
+  flex: 0 1 190px;
+}
+
+.seam .aside {
+  margin-top: 10px;
+  font-size: 15.5px;
+  line-height: 1.38;
+}
+
+.seam .aside summary {
+  width: fit-content;
+  border-bottom: 1px solid var(--edge);
+  color: var(--ink-1);
+  cursor: pointer;
+}
+
+.seam .aside p {
+  margin-top: 6px;
+  color: var(--ink-2);
+}
+
+.seam .result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin-top: 10px;
+}
+
+.seam .result-actions .link-button {
+  font-weight: 400;
+  font-size: 15.5px;
+}
+
+/* Truth table and ledger */
+
+.seam table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.seam th {
+  padding: 0 10px 6px 0;
+  border-bottom: 1px solid var(--edge);
+  color: var(--ink-3);
+  font: 500 14px/1.2 var(--caps);
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.seam td {
+  padding: 7px 10px 6px 0;
+  border-bottom: 1px solid var(--hair);
+  vertical-align: baseline;
+}
+
+.seam .truth {
+  margin-top: 14px;
+}
+
+.seam .truth td {
+  font: 400 20px/1.2 var(--serif);
+}
+
+.seam .truth .ket {
+  letter-spacing: 0.06em;
+}
+
+.seam .truth .measured {
+  width: 46%;
+  padding-right: 0;
+}
+
+.seam .truth .measured-cell {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+}
+
+.seam .truth .bar {
+  position: relative;
+  display: block;
+  height: 9px;
+  padding: 0;
+  border: 1px solid var(--ink-2);
+}
+
+.seam .truth .bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--link);
+}
+
+.seam .truth .bar.is-theory i {
+  background: none;
+}
+
+.seam .truth small {
+  display: block;
+  grid-column: 1 / -1;
+  color: var(--ink-3);
+  font: 400 14px/1.2 var(--sans);
+}
+
+.seam .ledger {
+  grid-column: 2 / -1;
+  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+.seam .ledger table {
+  table-layout: fixed;
+}
+
+.seam .ledger th:first-child {
+  width: 132px;
+}
+
+.seam .ledger th:nth-child(2) {
+  width: 43%;
+}
+
+.seam .ledger td {
+  padding: 7px 18px 6px 0;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.seam .ledger .tier {
+  color: var(--ink-1);
+  font: 500 14px/1.3 var(--caps);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.seam .ledger .tier svg {
+  margin-right: 8px;
+  vertical-align: -1px;
+}
+
+.seam .ledger .claim {
+  color: var(--ink-2);
+}
+
+.seam .ledger .evidence {
+  padding-right: 0;
+  color: var(--ink-1);
+  font: 400 16px/1.3 var(--serif);
+}
+
+.seam .ledger .evidence small {
+  color: var(--ink-3);
+  font: 400 14.5px/1.3 var(--sans);
+}
+
+.seam .ledger .pending {
+  color: var(--ink-3);
+  font: italic 400 16px/1.3 var(--sans);
+}
+
+.seam .ledger .pending .link-button {
+  margin-left: 8px;
+  font-style: normal;
+  font-size: 15px;
+}
+
+.seam .ledger-foot {
+  margin-top: auto;
+  padding-top: 10px;
+  color: var(--ink-3);
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+
+.seam .ledger-foot strong {
+  color: var(--ink-1);
+  font-weight: 500;
+}
+
+.seam .sheet.is-ledger .figure,
+.seam .sheet.is-ledger .controls,
+.seam .sheet.is-ledger .result {
+  display: none;
+}
+
+/* Narrow frame: plate on top, one strip below */
+
+@container seam (max-width: 1180px) {
+  .seam .frame {
+    row-gap: 8px;
+  }
+
+  .seam .bar {
+    padding-bottom: 6px;
+  }
+
+  .seam .wordmark {
+    font-size: 24px;
+  }
+
+  .seam .step-link:not([aria-current='step']) .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .seam .step-link .numeral {
+    margin-right: 5px;
+  }
+
+  .seam .chip {
+    font-size: 14px;
+  }
+
+  .seam .sheet {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'figure figure'
+      'controls controls'
+      'rail result';
+    column-gap: 28px;
+    row-gap: 8px;
+  }
+
+  .seam .caption {
+    display: none;
+  }
+
+  .seam .controls {
+    min-height: 0;
+    gap: 6px 18px;
+  }
+
+  .seam .run {
+    height: 34px;
+  }
+
+  .seam .rail,
+  .seam .result {
+    height: clamp(150px, 31cqh, 210px);
+  }
+
+  .seam .rail h2 {
+    font-size: 23px;
+  }
+
+  .seam .prose {
+    margin-top: 5px;
+    max-width: none;
+    font-size: 15px;
+    line-height: 1.32;
+  }
+
+  .seam .prose p + p {
+    display: none;
+  }
+
+  .seam .rail-action {
+    margin-top: 6px;
+  }
+
+  .seam .rail-action .link-button {
+    font-size: 15px;
+  }
+
+  .seam .readouts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 18px;
+    border-top: 0;
+  }
+
+  .seam .readouts > div {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 7px;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .seam .readouts dt {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .seam .readouts dt small {
+    display: none;
+  }
+
+  .seam .readouts dd {
+    font-size: 21px;
+  }
+
+  .seam .result {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'numerals main'
+      'message message'
+      'actions actions';
+    column-gap: 20px;
+  }
+
+  .seam .numerals {
+    grid-area: numerals;
+    grid-template-columns: auto;
+    align-content: start;
+    row-gap: 8px;
+  }
+
+  .seam .chart,
+  .seam .chart.is-bars,
+  .seam .truth {
+    grid-area: main;
+    margin-top: 0;
+  }
+
+  .seam .result-message {
+    grid-area: message;
+  }
+
+  .seam .result-error {
+    margin-top: 4px;
+    font-size: 14.5px;
+  }
+
+  .seam .result-actions {
+    grid-area: actions;
+  }
+
+  .seam .aside {
+    display: none;
+  }
+
+  .seam .numeral-label {
+    font-size: 14.5px;
+  }
+
+  .seam .numeral-value {
+    margin-top: 0;
+    font-size: 27px;
+  }
+
+  .seam .numeral-detail {
+    min-height: 0;
+    margin-top: 0;
+    font-size: 14px;
+  }
+
+  .seam .result-heading,
+  .seam .result-note {
+    display: none;
+  }
+
+  .seam .result-actions {
+    margin-top: 2px;
+  }
+
+  .seam .truth td {
+    padding: 2px 8px 2px 0;
+    font-size: 16px;
+  }
+
+  .seam .truth small {
+    display: none;
+  }
+
+  .seam .sheet.is-ledger {
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'rail rail'
+      'ledger ledger';
+  }
+
+  .seam .sheet.is-ledger .rail {
+    height: auto;
+  }
+
+  .seam .sheet.is-ledger .prose,
+  .seam .sheet.is-ledger .readouts {
+    display: none;
+  }
+
+  .seam .ledger {
+    grid-area: ledger;
+  }
+
+  .seam .ledger td {
+    padding: 3px 12px 3px 0;
+    font-size: 14.5px;
+  }
+
+  .seam .ledger .evidence {
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seam *,
+  .seam *::before,
+  .seam *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

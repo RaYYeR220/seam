@@ -1,0 +1,46 @@
+<div id="seam" class="seam" lang="en">
+  <div class="frame">
+    <header class="bar">
+      <h1 class="wordmark">Seam</h1>
+      <nav class="steps" aria-label="Steps">
+        <ol id="seam-steps">
+          <li><button type="button" class="step-link" aria-current="step"><span class="numeral">1</span><span class="title">One pair, one gate</span></button></li>
+          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">2</span><span class="title">One pair, many gates</span></button></li>
+          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">3</span><span class="title">The weakest link</span></button></li>
+          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">4</span><span class="title">Split an algorithm</span></button></li>
+          <li><button type="button" class="step-link" aria-disabled="true"><span class="numeral">5</span><span class="title">Ledger</span></button></li>
+        </ol>
+      </nav>
+      <p class="chip" id="seam-chip">starting the engine</p>
+      <div class="pager">
+        <button type="button" class="link-button" id="seam-back" data-demo="back" disabled>Back</button>
+        <button type="button" class="link-button" id="seam-next" data-demo="next" disabled>Next</button>
+      </div>
+    </header>
+
+    <main class="sheet" id="seam-sheet">
+      <section class="rail" aria-labelledby="seam-title">
+        <h2 id="seam-title">One pair, one gate</h2>
+        <div class="prose" id="seam-prose">
+          <p><strong>A CNOT between two computers that never touch costs one shared pair and two classical bits.</strong></p>
+          <p>Starting the quantum engine.</p>
+        </div>
+        <div class="rail-action" id="seam-rail-action"></div>
+        <dl class="readouts" id="seam-readouts"></dl>
+      </section>
+
+      <figure class="figure">
+        <div class="plate" id="seam-plate" data-demo="plate"></div>
+        <figcaption class="caption" id="seam-caption"></figcaption>
+      </figure>
+
+      <section class="controls" id="seam-controls" aria-label="Controls"></section>
+
+      <section class="result" id="seam-result" data-demo="result" aria-label="Result"></section>
+
+      <section class="ledger" id="seam-ledger" aria-label="Ledger of claims" hidden></section>
+    </main>
+
+    <p class="sr-only" id="seam-live" role="status" aria-live="polite"></p>
+  </div>
+</div>
