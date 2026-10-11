@@ -1,5 +1,7 @@
 # Seam
 
+**[Run it on Qollab](https://qollab.xyz/u/rayyer/seam)** · **[Source on GitHub](https://github.com/RaYYeR220/seam)** · [Claims ledger](https://github.com/RaYYeR220/seam/blob/main/CLAIMS.md) · [Derivations](https://github.com/RaYYeR220/seam/blob/main/docs/HOW_IT_WORKS.md) · MIT
+
 Seam splits a quantum circuit across two trapped-ion computers, Trap A and Trap B, joined by a photonic link. Every gate whose qubits sit on opposite sides of the cut is paid for with one shared Bell pair, as a teleported gate. Gates that share a control can ride one pair, and choosing them is solved exactly. The link can be noisy, and two raw pairs can be distilled into one better pair. You test five claims with real Qiskit circuits, and the page shows where the idea loses.
 
 The question: on 9 October 2026, the day this hackathon started, IonQ [announced](https://ionq.com/news/ionq-demonstrates-world-first-quantum-memory-enhanced-interconnect-for-distributed-quantum-applications) a memory-enhanced photonic interconnect producing more than 1,000 entanglement events per second "for distributed quantum applications". What can such a link actually compute, and what does it cost in pairs, qubits and fidelity?
@@ -54,7 +56,7 @@ svc() { python -c 'import sys; from seam import service as s; print(getattr(s, s
 | A noisy link sinks the algorithm | Split Grover succeeds under half the time beyond q = 0.1161 (0.1782 distilled). Phase estimation: 0.382, and distillation moves it the wrong way, to 0.327 | 4 | `svc exact '{"kind":"algorithm_sweep","algorithm":"grover","qs":[0.05]}'` |
 | Some cuts are nearly free; reuse buys nothing | GHZ, Bernstein–Vazirani: 1 crossing gate, 1 pair, reuse on or off | 4 | `python -m seam ghz --q 0.05` |
 | The split machine never beats one machine that fits the circuit | Equal at q = 0; lower at all 100 grid points in 0 < q ≤ 0.5, five circuits, raw and distilled. Grover, q = 0.05: 0.781 on 3 qubits; 0.644 on 11; 0.757 on 19 distilled, with 68.6% of shots kept | 4 | `python -m seam grover --q 0.05 --distill` |
-| Step 1's truth table cannot prove the gate | Delete the phase correction: all four rows still read 1.000. Only the statevector proof catches it (mean fidelity 0.62) | 1 | [CLAIMS.md](CLAIMS.md), N1 |
+| Step 1's truth table cannot prove the gate | Delete the phase correction: all four rows still read 1.000. Only the statevector proof catches it (mean fidelity 0.62) | 1 | [CLAIMS.md](https://github.com/RaYYeR220/seam/blob/main/CLAIMS.md), N1 |
 
 The break-even bar is max(classical guess, 1/2). Against the bare classical guess no catalog circuit loses for any q ≤ 0.5 (Grover at q = 0.5: 0.219 against 0.125), because only the link is noisy.
 
@@ -93,7 +95,7 @@ After line 3, `b` is a Z-basis copy of `c`: $\alpha|0\rangle_c|0\rangle_b + \bet
 | Grover, marked 101, one iteration | 3 | 8 | 8 | 2 | 7 | 11 | 19 |
 | QAOA MaxCut on a ring | 4 | 4 | 4 | 2 | 8 | 12 | 20 |
 
-Total = data + 2 link ions per raw pair + 2 environment qubits per raw pair on a noisy link; distillation doubles the raw pairs. Each row: `svc plan '{"algorithm":"<id>"}'`, ids `ghz`, `bv`, `qft_phase`, `grover`, `qaoa_ring`. Derivations: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md).
+Total = data + 2 link ions per raw pair + 2 environment qubits per raw pair on a noisy link; distillation doubles the raw pairs. Each row: `svc plan '{"algorithm":"<id>"}'`, ids `ghz`, `bv`, `qft_phase`, `grover`, `qaoa_ring`. Derivations: [docs/HOW_IT_WORKS.md](https://github.com/RaYYeR220/seam/blob/main/docs/HOW_IT_WORKS.md).
 
 ## Evidence
 
@@ -113,7 +115,7 @@ Total = data + 2 link ions per raw pair + 2 environment qubits per raw pair on a
 | `test_negative_controls.py` | 9 | Broken circuits must fail: drop either correction, or merge a burst across `h`, `rx`, `x` or a `cx` onto the control |
 | `test_cli.py` | 3 | The command line |
 
-Every claim, with its tier and command, is in [CLAIMS.md](CLAIMS.md).
+Every claim, with its tier and command, is in [CLAIMS.md](https://github.com/RaYYeR220/seam/blob/main/CLAIMS.md).
 
 ## Honest limits
 
@@ -140,6 +142,7 @@ ui/
   result.js        result panels
   dom.js           DOM and SVG helpers
   format.js        number formatting
+  link.js          the announced link's fidelity, as a link error
   palette.js       colors
   step-gate.js     step 1
   step-burst.js    step 2
@@ -182,7 +185,7 @@ The last command plans the cut, runs both circuits on Qiskit's BasicSimulator an
 
 ## Extend it
 
-1. **Split your own circuit.** Any unitary Qiskit circuit works from Python; see the ten-line example in [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md), section 9. To put it on the page, add a builder and an `Algorithm` entry in `seam/algorithms.py`; the catalog-wide tests pick it up.
+1. **Split your own circuit.** Any unitary Qiskit circuit works from Python; see the ten-line example in [docs/HOW_IT_WORKS.md](https://github.com/RaYYeR220/seam/blob/main/docs/HOW_IT_WORKS.md), section 9. To put it on the page, add a builder and an `Algorithm` entry in `seam/algorithms.py`; the catalog-wide tests pick it up.
 2. **Add target-side sharing.** Gates that share a target can ride one pair in the X basis. Extend `Gate.diagonal_on` and the scheduler; the brute-force test and the 708 equivalence cases tell you whether it is right.
 3. **Use a real classical channel.** In `build.distribute`, replace the two `classical` operations with a measurement and a conditional gate, and run on a backend with mid-circuit measurement.
 
@@ -197,4 +200,4 @@ The last command plans the cut, runs both circuits on Qiskit's BasicSimulator an
 
 ## Built during the hackathon window
 
-Seam was written from scratch between 9 and 11 October 2026 for the Qollab x IonQ Global Quantum Hackathon. It contains no pre-existing code. Libraries: Qiskit and NumPy. Fonts: Old Standard TT and Alegreya Sans (Google Fonts, SIL Open Font License). License: MIT.
+Seam was written from scratch between 9 and 11 October 2026 for the Qollab x IonQ Global Quantum Hackathon. It contains no pre-existing code. Libraries: Qiskit and NumPy. Fonts: Old Standard TT, Alegreya Sans and Alegreya Sans SC (Google Fonts, SIL Open Font License). License: MIT.
