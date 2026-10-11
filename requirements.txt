@@ -1,0 +1,1 @@
+# Qiskit is added automatically by Qollab and NumPy ships with Pyodide.
